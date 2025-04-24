@@ -1,11 +1,12 @@
 package com.davidnguyen.security_service.service;
 
-import com.davidnguyen.security_service.dto.AuthenticationRequest;
-import com.davidnguyen.security_service.dto.AuthenticationResponse;
-import com.davidnguyen.security_service.dto.RegistrationRequest;
-import com.davidnguyen.security_service.dto.UserCreateRequest;
+import com.davidnguyen.security_service.dto.*;
 import com.davidnguyen.security_service.entity.ActivationToken;
 import com.davidnguyen.security_service.entity.User;
+import com.davidnguyen.security_service.handler.exception.InactiveAccountException;
+import com.davidnguyen.security_service.handler.exception.InvalidTokenException;
+import com.davidnguyen.security_service.handler.exception.TokenExpiredException;
+import com.davidnguyen.security_service.handler.exception.UserAlreadyExistException;
 import com.davidnguyen.security_service.jwt.JwtService;
 import com.davidnguyen.security_service.kafka.producer.KafkaProducer;
 import com.davidnguyen.security_service.kafka.properties.UserRegisterTopicProperties;

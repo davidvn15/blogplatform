@@ -1,9 +1,6 @@
 package com.davidnguyen.security_service.controller;
 
-import com.davidnguyen.security_service.dto.AuthenticationRequest;
-import com.davidnguyen.security_service.dto.AuthenticationResponse;
-import com.davidnguyen.security_service.dto.PasswordResetRequest;
-import com.davidnguyen.security_service.dto.RegistrationRequest;
+import com.davidnguyen.security_service.dto.*;
 import com.davidnguyen.security_service.service.AuthenticationService;
 import com.davidnguyen.security_service.service.PasswordResetTokenService;
 import jakarta.servlet.http.HttpServletRequest;
