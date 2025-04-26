@@ -1,0 +1,100 @@
+version: '3.1'
+
+services:
+  config-server:
+    image: config-server:latest
+    build:
+      context: ../../infra/images/config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    networks:
+      - blog-network
+
+  discovery-service:
+    image: discovery-service:latest
+    build:
+      context: ../../infra/images/discovery-service
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    networks:
+      - blog-network
+
+  security-service:
+    image: security-service:latest
+    build:
+      context: ../../infra/images/security-service
+    ports:
+      - "8094:8094"
+    depends_on:
+      - discovery-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    networks:
+      - blog-network
+
+  user-service:
+    image: user-service:latest
+    build:
+      context: ../../infra/images/user-service
+    ports:
+      - "8091:8091"
+    depends_on:
+      - security-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    networks:
+      - blog-network
+
+  post-service:
+    image: post-service:latest
+    build:
+      context: ../../infra/images/post-service
+    ports:
+      - "8092:8092"
+    depends_on:
+      - user-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    networks:
+      - blog-network
+
+  email-service:
+    image: email-service:latest
+    build:
+      context: ../../infra/images/email-service
+    ports:
+      - "8093:8093"
+    depends_on:
+      - post-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    networks:
+      - blog-network
+
+  api-gateway:
+    image: api-gateway:latest
+    build:
+      context: ../../infra/images/api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - config-server
+      - discovery-service
+      - security-service
+      - user-service
+      - post-service
+      - email-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    networks:
+      - blog-network
+
+networks:
+  blog-network:
+    driver: bridge

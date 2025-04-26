@@ -3,6 +3,7 @@ version: '3.1'
 services:
   zookeeper:
     image: "docker.io/bitnami/zookeeper:3"
+    restart: unless-stopped
     ports:
       - "2181:2181"
     volumes:
@@ -12,6 +13,7 @@ services:
 
   kafka:
     image: "docker.io/bitnami/kafka:2-debian-10"
+    restart: unless-stopped
     ports:
       - "9093:9092"
     expose:
@@ -34,7 +36,7 @@ services:
     container_name: kafka-ui
     ports:
       - "9090:8080"
-    restart: always
+    restart: unless-stopped
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9093
@@ -43,6 +45,7 @@ services:
   mail-dev:
     container_name: mail-dev-bsn
     image: maildev/maildev
+    restart: unless-stopped
     ports:
       - 1081:1080
       - 1026:1025
@@ -50,6 +53,7 @@ services:
   mongodb:
     image: mongo
     container_name: mongodb-container
+    restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
@@ -61,6 +65,7 @@ services:
   postgres:
     image: postgres:latest
     container_name: my-postgres
+    restart: unless-stopped
     ports:
       - "5435:5432"
     environment:
@@ -73,6 +78,7 @@ services:
   rabbitmq:
     image: rabbitmq:management
     container_name: rabbitmq-container
+    restart: unless-stopped
     ports:
       - "5672:5672"
       - "15672:15672"

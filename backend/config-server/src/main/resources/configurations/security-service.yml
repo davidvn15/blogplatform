@@ -39,7 +39,7 @@ server:
   port: 8081
 
 kafka:
-  host: localhost:9092
+  host: localhost:9093
   topics:
     user-registered:
       topicName: auth_service.user_registered.0
