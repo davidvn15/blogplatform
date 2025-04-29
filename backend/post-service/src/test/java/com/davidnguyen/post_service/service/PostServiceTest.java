@@ -1,7 +1,7 @@
 package com.davidnguyen.post_service.service;
 
 import com.davidnguyen.post_service.dto.CreateUpdatePostRequest;
-import com.davidnguyen.post_service.dto.PostDto;
+import com.davidnguyen.post_service.dto.PostReqDto;
 import com.davidnguyen.post_service.dto.UserDto;
 import com.davidnguyen.post_service.entity.Post;
 import com.davidnguyen.post_service.file.FileStorageService;
@@ -56,26 +56,26 @@ public class PostServiceTest {
             add(post2);
         }};
 
-        PostDto postDto1 = new PostDto();
-        postDto1.setContent("post1");
+        PostReqDto postReqDto1 = new PostReqDto();
+        postReqDto1.setContent("post1");
 
-        PostDto postDto2 = new PostDto();
-        postDto2.setContent("post2");
+        PostReqDto postReqDto2 = new PostReqDto();
+        postReqDto2.setContent("post2");
 
-        List<PostDto> postDtoList =  new ArrayList<>(){{
-            add(postDto1);
-            add(postDto2);
+        List<PostReqDto> postReqDtoList =  new ArrayList<>(){{
+            add(postReqDto1);
+            add(postReqDto2);
         }};
 
         //when
         when(postRepository.findAll()).thenReturn(postList);
-        when(postMapper.toPostDto(post1)).thenReturn(postDto1);
-        when(postMapper.toPostDto(post2)).thenReturn(postDto2);
+        when(postMapper.toPostRespDTO(post1)).thenReturn(postReqDto1);
+        when(postMapper.toPostRespDTO(post2)).thenReturn(postReqDto2);
 
         //then
-        List<PostDto> resultList = postService.getAllPosts();
+        List<PostReqDto> resultList = postService.getAllPosts();
 
-        assertEquals(resultList,postDtoList);
+        assertEquals(resultList, postReqDtoList);
 
         //verify
         verify(postRepository).findAll();
@@ -91,17 +91,17 @@ public class PostServiceTest {
         Post post = new Post();
         post.setContent("post1");
 
-        PostDto postDto = new PostDto();
-        postDto.setContent("postdto1");
+        PostReqDto postReqDto = new PostReqDto();
+        postReqDto.setContent("postdto1");
 
         //when
         when(postRepository.findById(id)).thenReturn(Optional.of(post));
-        when(postMapper.toPostDto(post)).thenReturn(postDto);
+        when(postMapper.toPostRespDTO(post)).thenReturn(postReqDto);
 
         //then
-        PostDto result = postService.getPostById(id);
+        PostReqDto result = postService.getPostById(id);
 
-        assertEquals(result,postDto);
+        assertEquals(result, postReqDto);
 
         //verfiy
         verify(postRepository).findById(id);
@@ -145,33 +145,33 @@ public class PostServiceTest {
             add(post2);
         }};
 
-        PostDto postDto1 = new PostDto();
-        postDto1.setContent("postDto1");
-        postDto1.setUserId("i1");
+        PostReqDto postReqDto1 = new PostReqDto();
+        postReqDto1.setContent("postDto1");
+        postReqDto1.setUserId("i1");
 
-        PostDto postDto2 = new PostDto();
-        postDto2.setContent("postDto2");
-        postDto2.setUserId("i1");
+        PostReqDto postReqDto2 = new PostReqDto();
+        postReqDto2.setContent("postDto2");
+        postReqDto2.setUserId("i1");
 
-        List<PostDto> postDtoList = new ArrayList<>(){{
-            add(postDto1);
-            add(postDto2);
+        List<PostReqDto> postReqDtoList = new ArrayList<>(){{
+            add(postReqDto1);
+            add(postReqDto2);
         }};
 
         //when
         when(postRepository.findByUserId(userId)).thenReturn(postList);
-        when(postMapper.toPostDto(post1)).thenReturn(postDto1);
-        when(postMapper.toPostDto(post2)).thenReturn(postDto2);
+        when(postMapper.toPostRespDTO(post1)).thenReturn(postReqDto1);
+        when(postMapper.toPostRespDTO(post2)).thenReturn(postReqDto2);
 
         //then
-        List<PostDto> result = postService.getUserPosts(userId);
+        List<PostReqDto> result = postService.getUserPosts(userId);
 
-        assertEquals(result,postDtoList);
+        assertEquals(result, postReqDtoList);
 
         //verify
         verify(postRepository).findByUserId(userId);
-        verify(postMapper).toPostDto(post1);
-        verify(postMapper).toPostDto(post2);
+        verify(postMapper).toPostRespDTO(post1);
+        verify(postMapper).toPostRespDTO(post2);
         verifyNoMoreInteractions(postRepository,postMapper);
 
     }
@@ -199,29 +199,29 @@ public class PostServiceTest {
             add(post2);
         }};
 
-        PostDto postDto = new PostDto();
-        postDto.setContent("postDto1");
-        postDto.setUserId("i1");
+        PostReqDto postReqDto = new PostReqDto();
+        postReqDto.setContent("postDto1");
+        postReqDto.setUserId("i1");
 
-        PostDto postDto2 = new PostDto();
-        postDto2.setContent("postDto2");
-        postDto2.setUserId("i2");
+        PostReqDto postReqDto2 = new PostReqDto();
+        postReqDto2.setContent("postDto2");
+        postReqDto2.setUserId("i2");
 
-        List<PostDto> postDtoList = new ArrayList<>(){{
-            add(postDto);
+        List<PostReqDto> postReqDtoList = new ArrayList<>(){{
+            add(postReqDto);
         }};
 
         //when
         when(postRepository.findAll()).thenReturn(postList);
-        when(postMapper.toPostDto(post1)).thenReturn(postDto);
+        when(postMapper.toPostRespDTO(post1)).thenReturn(postReqDto);
 
         //then
-        List<PostDto> result = postService.getUserSaved(userId);
+        List<PostReqDto> result = postService.getUserSaved(userId);
 
         assertEquals(result.size(),1);
 
         verify(postRepository).findAll();
-        verify(postMapper).toPostDto(post1);
+        verify(postMapper).toPostRespDTO(post1);
     }
 
 
@@ -257,7 +257,7 @@ public class PostServiceTest {
         when(fileStorageService.saveFile(thumbnailFile)).thenReturn(thumbnailPath);
 
         // Mocking the behavior of postMapper
-        PostDto postDto = PostDto.builder()
+        PostReqDto postReqDto = PostReqDto.builder()
                 .title(title)
                 .content(content)
                 .userId(userId)
@@ -267,14 +267,14 @@ public class PostServiceTest {
                 .comments(new ArrayList<>())
                 .build();
         Post post = new Post();
-        when(postMapper.toPost(postDto)).thenReturn(post);
+        when(postMapper.toPostEntity(postReqDto)).thenReturn(post);
 
         // When
         postService.createPost(thumbnailFile, title, content, userId);
 
         // Then
         verify(fileStorageService).saveFile(thumbnailFile);
-        verify(postMapper).toPost(postDto);
+        verify(postMapper).toPostEntity(postReqDto);
         verify(postRepository).save(post);
     }
 

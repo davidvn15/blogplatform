@@ -1,7 +1,6 @@
 package com.davidnguyen.post_service.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.davidnguyen.post_service.entity.Comment;
 import lombok.*;
 
 import java.util.List;
@@ -12,7 +11,7 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostDto {
+public class PostRespDto {
     private String title;
     private String thumbnail;
     @JsonIgnore

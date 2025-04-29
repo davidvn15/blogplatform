@@ -1,7 +1,7 @@
 package com.davidnguyen.post_service.service;
 
 import com.davidnguyen.post_service.dto.CreateUpdatePostRequest;
-import com.davidnguyen.post_service.dto.PostDto;
+import com.davidnguyen.post_service.dto.PostReqDto;
 import com.davidnguyen.post_service.dto.UserDto;
 import com.davidnguyen.post_service.entity.Post;
 import com.davidnguyen.post_service.handler.exception.ResourceNoAccessException;
@@ -25,28 +25,28 @@ public class PostService {
     private final FileStorageService fileStorageService;
     private final UserApiClient userApiClient;
 
-    public List<PostDto> getAllPosts() {
+    public List<PostReqDto> getAllPosts() {
         return postRepository.findAll()
-                .stream().map(postMapper::toPostDto).toList();
+                .stream().map(postMapper::toPostRespDTO).toList();
     }
 
-    public PostDto getPostById(Integer id) {
-        return postMapper.toPostDto(postRepository.findById(id)
+    public PostReqDto getPostById(Integer id) {
+        return postMapper.toPostRespDTO(postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with this id " + id)));
     }
 
-    public List<PostDto> getUserPosts(String userId) {
+    public List<PostReqDto> getUserPosts(String userId) {
         List<Post> userPosts = postRepository.findByUserId(userId);
-        return userPosts.stream().map(postMapper::toPostDto).toList();
+        return userPosts.stream().map(postMapper::toPostRespDTO).toList();
     }
 
-    public List<PostDto> getUserSaved(String userId) {
+    public List<PostReqDto> getUserSaved(String userId) {
         List<Post> allPosts = postRepository.findAll();
         List<Post> savedPosts = allPosts.stream()
                 .filter(post -> post.getSaved().contains(userId))
                 .toList();
         return savedPosts.stream()
-                .map(postMapper::toPostDto)
+                .map(postMapper::toPostRespDTO)
                 .collect(Collectors.toList());
     }
 
@@ -54,23 +54,23 @@ public class PostService {
         return Math.toIntExact(postRepository.findById(postId).stream().count());
     }
 
-    public void createPost(MultipartFile thumbnailFile, String title,String content, String userId) {
+    public void createPost(MultipartFile thumbnailFile, String title,String content, String authorId) {
         String thumbnailPath = fileStorageService.saveFile(thumbnailFile);
         if (thumbnailPath == null) {
             throw new RuntimeException("Failed to save thumbnail");
         }
 
-        PostDto postDto = PostDto.builder()
+        PostReqDto postReqDto = PostReqDto.builder()
                 .title(title)
                 .content(content)
-                .userId(userId)
+                .authorId(authorId)
                 .thumbnail(thumbnailPath)
                 .likes(new HashSet<>())
                 .saved(new HashSet<>())
                 .comments(new ArrayList<>())
                 .build();
 
-        Post post = postMapper.toPost(postDto);
+        Post post = postMapper.toPostEntity(postReqDto);
         postRepository.save(post);
     }
 

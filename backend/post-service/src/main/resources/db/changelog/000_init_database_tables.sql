@@ -38,6 +38,7 @@ CREATE TABLE posts (
                        title VARCHAR(255) NOT NULL,
                        slug VARCHAR(255) NOT NULL UNIQUE,
                        excerpt TEXT,
+                       thumbnail TEXT,
                        content TEXT NOT NULL,
                        featured_image_url TEXT,
                        status VARCHAR(20) NOT NULL DEFAULT 'draft', -- 'draft', 'published', 'archived'

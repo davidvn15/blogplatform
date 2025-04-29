@@ -1,6 +1,7 @@
 package com.davidnguyen.post_service.mapper;
 
-import com.davidnguyen.post_service.dto.PostDto;
+import com.davidnguyen.post_service.dto.PostReqDto;
+import com.davidnguyen.post_service.dto.PostRespDto;
 import com.davidnguyen.post_service.dto.UserDto;
 import com.davidnguyen.post_service.entity.Post;
 import com.davidnguyen.post_service.service.UserApiClient;
@@ -16,20 +17,17 @@ public class PostMapper {
     private final UserApiClient userApiClient;
     private final CommentMapper commentMapper;
 
-    public Post toPost(PostDto postDto) {
+    public Post toPostEntity(PostReqDto postReqDto) {
         return Post.builder()
-                .title(postDto.getTitle())
-                .userId(postDto.getUserId())
-                .thumbnail(postDto.getThumbnail())
-                .content(postDto.getContent())
-                .likes(postDto.getLikes().stream().map(UserDto::getId).collect(Collectors.toSet()))
-                .saved(postDto.getSaved().stream().map(UserDto::getId).collect(Collectors.toSet()))
-                .comments(postDto.getComments().stream().map(commentMapper::toComment).collect(Collectors.toList()))
+                .title(postReqDto.getTitle())
+                .authorId(postReqDto.getAuthorId())
+                .thumbnail(postReqDto.getThumbnail())
+                .content(postReqDto.getContent())
                 .build();
     }
 
-    public PostDto toPostDto(Post post) {
-        return PostDto.builder()
+    public PostReqDto toPostRespDTO(Post post) {
+        return PostRespDto.builder()
                 .title(post.getTitle())
                 .userId(post.getUserId())
                 .thumbnail(post.getThumbnail())
