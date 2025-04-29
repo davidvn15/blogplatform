@@ -2,6 +2,7 @@ package com.davidnguyen.post_service.service;
 
 import com.davidnguyen.post_service.dto.CreateUpdatePostRequest;
 import com.davidnguyen.post_service.dto.PostReqDto;
+import com.davidnguyen.post_service.dto.PostRespDto;
 import com.davidnguyen.post_service.dto.UserDto;
 import com.davidnguyen.post_service.entity.Post;
 import com.davidnguyen.post_service.handler.exception.ResourceNoAccessException;
@@ -25,25 +26,26 @@ public class PostService {
     private final FileStorageService fileStorageService;
     private final UserApiClient userApiClient;
 
-    public List<PostReqDto> getAllPosts() {
+    public List<PostRespDto> getAllPosts() {
         return postRepository.findAll()
                 .stream().map(postMapper::toPostRespDTO).toList();
     }
 
-    public PostReqDto getPostById(Integer id) {
+    public PostRespDto getPostById(Integer id) {
         return postMapper.toPostRespDTO(postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with this id " + id)));
     }
 
-    public List<PostReqDto> getUserPosts(String userId) {
-        List<Post> userPosts = postRepository.findByUserId(userId);
-        return userPosts.stream().map(postMapper::toPostRespDTO).toList();
+    public List<PostRespDto> getUserPosts(String userId) {
+//        List<Post> userPosts = postRepository.findByUserId(userId);
+//        return userPosts.stream().map(postMapper::toPostRespDTO).toList();
+        return Collections.emptyList();
     }
 
-    public List<PostReqDto> getUserSaved(String userId) {
+    public List<PostRespDto> getUserSaved(String userId) {
         List<Post> allPosts = postRepository.findAll();
         List<Post> savedPosts = allPosts.stream()
-                .filter(post -> post.getSaved().contains(userId))
+//                .filter(post -> post.getSaved().contains(userId))
                 .toList();
         return savedPosts.stream()
                 .map(postMapper::toPostRespDTO)
@@ -54,7 +56,7 @@ public class PostService {
         return Math.toIntExact(postRepository.findById(postId).stream().count());
     }
 
-    public void createPost(MultipartFile thumbnailFile, String title,String content, String authorId) {
+    public void createPost(MultipartFile thumbnailFile, String title,String content, UUID authorId) {
         String thumbnailPath = fileStorageService.saveFile(thumbnailFile);
         if (thumbnailPath == null) {
             throw new RuntimeException("Failed to save thumbnail");
@@ -65,9 +67,9 @@ public class PostService {
                 .content(content)
                 .authorId(authorId)
                 .thumbnail(thumbnailPath)
-                .likes(new HashSet<>())
-                .saved(new HashSet<>())
-                .comments(new ArrayList<>())
+//                .likes(new HashSet<>())
+//                .saved(new HashSet<>())
+//                .comments(new ArrayList<>())
                 .build();
 
         Post post = postMapper.toPostEntity(postReqDto);
@@ -102,15 +104,15 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with this id " + postId));
 
-        Set<String> likesList = post.getLikes();
-
-        if (likesList.contains(userId)) {
-            likesList.remove(userId);
-        } else {
-            likesList.add(userId);
-        }
-
-        post.setLikes(likesList);
+//        Set<String> likesList = post.getLikes();
+//
+//        if (likesList.contains(userId)) {
+//            likesList.remove(userId);
+//        } else {
+//            likesList.add(userId);
+//        }
+//
+//        post.setLikes(likesList);
         postRepository.save(post);
     }
 
@@ -118,15 +120,15 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with this id " + postId));
 
-        Set<String> saveList = post.getSaved();
+//        Set<String> saveList = post.getSaved();
 
-        if (saveList.contains(userId)) {
-            saveList.remove(userId);
-        } else {
-            saveList.add(userId);
-        }
+//        if (saveList.contains(userId)) {
+//            saveList.remove(userId);
+//        } else {
+//            saveList.add(userId);
+//        }
 
-        post.setSaved(saveList);
+//        post.setSaved(saveList);
         postRepository.save(post);
     }
 
@@ -144,9 +146,9 @@ public class PostService {
 
         UserDto apiUser = userApiClient.findUserById(userId);
 
-        if (!Objects.equals(post.getUserId(), userId) && !apiUser.getRoles().contains("ROLE_ADMIN")) {
-            throw new ResourceNoAccessException("You have no access to this resource");
-        }
+//        if (!Objects.equals(post.getUserId(), userId) && !apiUser.getRoles().contains("ROLE_ADMIN")) {
+//            throw new ResourceNoAccessException("You have no access to this resource");
+//        }
 
         return post;
     }

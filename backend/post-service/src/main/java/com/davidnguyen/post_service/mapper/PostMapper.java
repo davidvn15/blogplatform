@@ -20,22 +20,22 @@ public class PostMapper {
     public Post toPostEntity(PostReqDto postReqDto) {
         return Post.builder()
                 .title(postReqDto.getTitle())
-                .authorId(postReqDto.getAuthorId())
+//                .authorId(postReqDto.getAuthorId())
                 .thumbnail(postReqDto.getThumbnail())
                 .content(postReqDto.getContent())
                 .build();
     }
 
-    public PostReqDto toPostRespDTO(Post post) {
+    public PostRespDto toPostRespDTO(Post post) {
         return PostRespDto.builder()
                 .title(post.getTitle())
-                .userId(post.getUserId())
+//                .userId(post.getUserId())
                 .thumbnail(post.getThumbnail())
                 .content(post.getContent())
-                .likes(post.getLikes().stream().map(userApiClient::findUserById).collect(Collectors.toSet()))
-                .saved(post.getSaved().stream().map(userApiClient::findUserById).collect(Collectors.toSet()))
+//                .likes(post.getLikes().stream().map(userApiClient::findUserById).collect(Collectors.toSet()))
+//                .saved(post.getSaved().stream().map(userApiClient::findUserById).collect(Collectors.toSet()))
                 .comments(post.getComments().stream().map(commentMapper::toCommentDto).collect(Collectors.toList()))
-                .userDto(userApiClient.findUserById(post.getUserId()))
+//                .userDto(userApiClient.findUserById(post.getUserId()))
                 .build();
     }
 }

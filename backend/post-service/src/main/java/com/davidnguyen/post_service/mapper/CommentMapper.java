@@ -19,18 +19,18 @@ public class CommentMapper {
 
     public Comment toComment(CommentDto commentDto) {
         return Comment.builder()
-                .userId(commentDto.getUserId())
+//                .userId(commentDto.getUserId())
                 .content(commentDto.getContent())
-                .likes(commentDto.getLikes().stream().map(UserDto::getId).collect(Collectors.toSet()))
+//                .likes(commentDto.getLikes().stream().map(UserDto::getId).collect(Collectors.toSet()))
                 .build();
     }
 
     public CommentDto toCommentDto(Comment comment) {
         return CommentDto.builder()
-                .userId(comment.getUserId())
+//                .userId(comment.getUserId())
                 .content(comment.getContent())
-                .likes(comment.getLikes().stream().map(userApiClient::findUserById).collect(Collectors.toSet()))
-                .userDto(userApiClient.findUserById(comment.getUserId())) // Set the userDto field
+//                .likes(comment.getLikes().stream().map(userApiClient::findUserById).collect(Collectors.toSet()))
+//                .userDto(userApiClient.findUserById(comment.getUserId())) // Set the userDto field
                 .build();
     }
 }

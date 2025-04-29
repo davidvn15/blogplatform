@@ -3,6 +3,7 @@ package com.davidnguyen.post_service.controller;
 import com.davidnguyen.post_service.dto.CreateUpdatePostRequest;
 import com.davidnguyen.post_service.dto.PostReqDto;
 import com.davidnguyen.post_service.dto.PostHelloDto;
+import com.davidnguyen.post_service.dto.PostRespDto;
 import com.davidnguyen.post_service.file.FileStorageService;
 import com.davidnguyen.post_service.service.PostService;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,12 +32,12 @@ public class PostController {
     }
 
     @GetMapping(ApiEndpoints.POST)
-    public ResponseEntity<List<PostReqDto>> getAllPosts() {
+    public ResponseEntity<List<PostRespDto>> getAllPosts() {
         return ResponseEntity.status(HttpStatus.OK).body(postService.getAllPosts());
     }
 
     @GetMapping(ApiEndpoints.POST_DETAIL)
-    public ResponseEntity<PostReqDto> getPostById(
+    public ResponseEntity<PostRespDto> getPostById(
             @PathVariable(value = "postId") Integer id
     ) {
         return ResponseEntity.status(HttpStatus.OK)
@@ -43,7 +45,7 @@ public class PostController {
     }
 
     @GetMapping(ApiEndpoints.POST_BY_USER)
-    public ResponseEntity<List<PostReqDto>> getUserPosts(
+    public ResponseEntity<List<PostRespDto>> getUserPosts(
             @PathVariable(value = "userId") String userId
     ) {
         return ResponseEntity.status(HttpStatus.OK)
@@ -58,7 +60,7 @@ public class PostController {
     }
 
     @GetMapping("/get-user-saved/{userId}")
-    public ResponseEntity<List<PostReqDto>> getUserSaved(
+    public ResponseEntity<List<PostRespDto>> getUserSaved(
             @PathVariable(value = "userId") String userId
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(postService.getUserSaved(userId));
@@ -69,7 +71,7 @@ public class PostController {
             @RequestPart("thumbnail") @Valid MultipartFile thumbnail,
             @RequestParam("title") @NotNull @Size(max = 30, message = "Title must be less than 30 characters") String title,
             @RequestParam("content") @NotNull String content,
-            @RequestHeader("authorId") String authorId
+            @RequestHeader("authorId") UUID authorId
     ) {
         String thumbnailPath = fileStorageService.saveFile(thumbnail);
         if (thumbnailPath == null) {

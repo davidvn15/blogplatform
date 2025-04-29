@@ -53,9 +53,9 @@ public class CommentService {
 
         UserDto apiUser = userApiClient.findUserById(userId);
 
-        if (!Objects.equals(comment.getUserId(), userId) && !apiUser.getRoles().contains("ROLE_ADMIN")) {
-            throw new ResourceNoAccessException("You have no access to this resource");
-        }
+//        if (!Objects.equals(comment.getUserId(), userId) && !apiUser.getRoles().contains("ROLE_ADMIN")) {
+//            throw new ResourceNoAccessException("You have no access to this resource");
+//        }
 
         return comment;
     }
