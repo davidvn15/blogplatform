@@ -7,20 +7,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.UUID;
+
 @RestController
-@RequestMapping("/comment")
 @RequiredArgsConstructor
 public class CommentController {
-
     private final CommentService commentService;
 
-    @PostMapping("/create-comment/{postId}")
+    @PostMapping(ApiEndpoints.COMMENT)
     public ResponseEntity<?> createComment(
-            @PathVariable(value = "postId") Integer postId,
-            @RequestBody CommentDto commentDto,
-            @RequestHeader("id") String userId
-            ){
-        commentService.createComment(postId,commentDto,userId);
+            @PathVariable(value = "postId") UUID postId,
+            @RequestBody List<CommentDto> comments,
+            @RequestHeader("authorId") UUID authorId
+    ) {
+        commentService.createComment(postId, comments, authorId);
         return ResponseEntity.status(HttpStatus.OK).body("Comment has been added");
     }
 

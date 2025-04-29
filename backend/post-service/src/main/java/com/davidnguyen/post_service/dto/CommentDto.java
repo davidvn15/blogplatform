@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import java.util.Set;
+import java.util.UUID;
 
 
 @Getter
@@ -13,7 +14,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class CommentDto {
     @JsonIgnore
-    private String userId;
+    private UUID authorId;
     private String content;
     private Set<UserDto> likes;
     private UserDto userDto;

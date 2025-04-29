@@ -12,8 +12,7 @@ import com.davidnguyen.post_service.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -23,17 +22,21 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserApiClient userApiClient;
 
-    public void createComment(Integer postId, CommentDto request,String userId){
+    public void createComment(UUID postId, List<CommentDto> requests, UUID authorId){
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with this id " + postId));
 
-        request.setUserId(userId);
-        request.setLikes(new HashSet<>());
-        Comment comment = commentMapper.toComment(request);
-        comment.setPost(post);
+        List<Comment> comments = new ArrayList<>();
+        requests.forEach(req -> {
+            req.setAuthorId(authorId);
+            req.setLikes(new HashSet<>());
+            Comment comment = commentMapper.toComment(req);
+            comments.add(comment);
+            comment.setPost(post);
+        });
 
         postRepository.save(post);
-        commentRepository.save(comment);
+        commentRepository.saveAll(comments);
     }
 
     public void updateComment(Integer commentId, CommentDto request,String userId){

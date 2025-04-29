@@ -1,7 +1,6 @@
 package com.davidnguyen.post_service.controller;
 
 import com.davidnguyen.post_service.dto.CreateUpdatePostRequest;
-import com.davidnguyen.post_service.dto.PostReqDto;
 import com.davidnguyen.post_service.dto.PostHelloDto;
 import com.davidnguyen.post_service.dto.PostRespDto;
 import com.davidnguyen.post_service.file.FileStorageService;
@@ -11,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -66,7 +66,7 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body(postService.getUserSaved(userId));
     }
 
-    @PostMapping(value = ApiEndpoints.POST, consumes = {"multipart/form-data"})
+    @PostMapping(value = ApiEndpoints.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> createPost(
             @RequestPart("thumbnail") @Valid MultipartFile thumbnail,
             @RequestParam("title") @NotNull @Size(max = 30, message = "Title must be less than 30 characters") String title,
@@ -93,17 +93,17 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body("Post has been updated");
     }
 
-    @PatchMapping(value = "/upload-thumbnail/{postId}",consumes = {"multipart/form-data"})
+    @PatchMapping(value = ApiEndpoints.POST_THUMBNAIL, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> uploadThumbnail(
             @PathVariable(value = "postId") Integer postId,
             @RequestPart("file") @Valid MultipartFile thumbnailFile,
-            @RequestHeader("id") String userId
-    ){
-        postService.uploadThumbnail(postId,thumbnailFile,userId);
+            @RequestHeader("authorId") String authorId
+    ) {
+        postService.uploadThumbnail(postId, thumbnailFile, authorId);
         return ResponseEntity.status(HttpStatus.OK).body("New thumbnail added to post");
     }
 
-    @PatchMapping("/like-post/{postId}/{userId}")
+    @PatchMapping(ApiEndpoints.POST_LIKE)
     public ResponseEntity<?> likeAndUnlikePost(
             @PathVariable(value = "postId") Integer postId,
             @PathVariable(value = "userId") String userId
@@ -112,7 +112,7 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body("You liked or unliked this post");
     }
 
-    @PatchMapping("/save-post/{postId}/{userId}")
+    @PatchMapping(ApiEndpoints.POST_TEMP_SAVE)
     public ResponseEntity<?> saveAndUnsavedPost(
             @PathVariable(value = "postId") Integer postId,
             @PathVariable(value = "userId") String userId
@@ -121,7 +121,7 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body("You saved or unsaved this post");
     }
 
-    @DeleteMapping("/delete-post/{id}")
+    @DeleteMapping(ApiEndpoints.POST_DELETE)
     public ResponseEntity<?> deletePost(
             @PathVariable(value = "id") Integer id,
             @RequestHeader("id") String userId
