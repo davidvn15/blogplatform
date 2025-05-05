@@ -15,7 +15,7 @@ import java.util.UUID;
 public class CommentController {
     private final CommentService commentService;
 
-    @PostMapping(ApiEndpoints.COMMENT)
+    @PostMapping(ApiEndpoints.POST_COMMENTS)
     public ResponseEntity<?> createComment(
             @PathVariable(value = "postId") UUID postId,
             @RequestBody List<CommentDto> comments,
@@ -25,7 +25,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.OK).body("Comment has been added");
     }
 
-    @PutMapping("/update-comment/{commentId}")
+    @PutMapping(ApiEndpoints.COMMENT_DETAIL)
     public ResponseEntity<?> updateComment(
             @PathVariable(value = "commentId") Integer commentId,
             @RequestBody CommentDto commentDto,
@@ -35,7 +35,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.OK).body("Comment has been edited");
     }
 
-    @DeleteMapping("/delete-comment/{commentId}")
+    @DeleteMapping(ApiEndpoints.COMMENT_DETAIL)
     public ResponseEntity<?> deleteComment(
             @PathVariable(value = "commentId") Integer commentId,
             @RequestHeader("id") String userId

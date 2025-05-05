@@ -4,7 +4,6 @@ import com.davidnguyen.post_service.dto.CommentDto;
 import com.davidnguyen.post_service.dto.UserDto;
 import com.davidnguyen.post_service.entity.Comment;
 import com.davidnguyen.post_service.entity.Post;
-import com.davidnguyen.post_service.handler.exception.ResourceNoAccessException;
 import com.davidnguyen.post_service.handler.exception.ResourceNotFoundException;
 import com.davidnguyen.post_service.mapper.CommentMapper;
 import com.davidnguyen.post_service.repository.CommentRepository;

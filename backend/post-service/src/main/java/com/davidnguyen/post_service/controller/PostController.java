@@ -21,30 +21,29 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 public class PostController {
-
     private final PostService postService;
     private final FileStorageService fileStorageService;
     private final PostHelloDto sayhello;
 
-    @GetMapping(ApiEndpoints.POST_HEARTBEAT)
+    @GetMapping(ApiEndpoints.HEARTBEAT)
     public ResponseEntity<PostHelloDto> heartbeat(){
         return ResponseEntity.status(HttpStatus.OK).body(sayhello);
     }
 
-    @GetMapping(ApiEndpoints.POST)
+    @GetMapping(ApiEndpoints.POSTS)
     public ResponseEntity<List<PostRespDto>> getAllPosts() {
         return ResponseEntity.status(HttpStatus.OK).body(postService.getAllPosts());
     }
 
     @GetMapping(ApiEndpoints.POST_DETAIL)
     public ResponseEntity<PostRespDto> getPostById(
-            @PathVariable(value = "postId") Integer id
+            @PathVariable(value = "postId") Integer postId
     ) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(postService.getPostById(id));
+                .body(postService.getPostById(postId));
     }
 
-    @GetMapping(ApiEndpoints.POST_BY_USER)
+    @GetMapping(ApiEndpoints.USER_POSTS)
     public ResponseEntity<List<PostRespDto>> getUserPosts(
             @PathVariable(value = "userId") String userId
     ) {
@@ -52,21 +51,21 @@ public class PostController {
                 .body(postService.getUserPosts(userId));
     }
 
-    @GetMapping("/get-post-saved-count/{postId}")
+    @GetMapping(ApiEndpoints.POST_SAVES_COUNT)
     public ResponseEntity<Integer> getPostSavedCount(
             @PathVariable(value = "postId") Integer postId
     ){
         return ResponseEntity.status(HttpStatus.OK).body(postService.getSavedCount(postId));
     }
 
-    @GetMapping("/get-user-saved/{userId}")
+    @GetMapping(ApiEndpoints.USER_SAVES)
     public ResponseEntity<List<PostRespDto>> getUserSaved(
             @PathVariable(value = "userId") String userId
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(postService.getUserSaved(userId));
     }
 
-    @PostMapping(value = ApiEndpoints.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = ApiEndpoints.POSTS, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> createPost(
             @RequestPart("thumbnail") @Valid MultipartFile thumbnail,
             @RequestParam("title") @NotNull @Size(max = 30, message = "Title must be less than 30 characters") String title,
@@ -83,7 +82,7 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Post has been created");
     }
 
-    @PutMapping(ApiEndpoints.POST_UPDATE)
+    @PutMapping(ApiEndpoints.POST_DETAIL)
     public ResponseEntity<?> updatePost(
             @PathVariable(value = "postId") Integer postId,
             @RequestBody @Valid CreateUpdatePostRequest updatePostRequest,
@@ -103,30 +102,48 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body("New thumbnail added to post");
     }
 
-    @PatchMapping(ApiEndpoints.POST_LIKE)
-    public ResponseEntity<?> likeAndUnlikePost(
+    @PostMapping(ApiEndpoints.POST_LIKE)
+    public ResponseEntity<?> likePost(
             @PathVariable(value = "postId") Integer postId,
-            @PathVariable(value = "userId") String userId
+            @RequestHeader("userId") String userId
     ) {
         postService.likeAndUnlikePost(postId, userId);
-        return ResponseEntity.status(HttpStatus.OK).body("You liked or unliked this post");
+        return ResponseEntity.status(HttpStatus.OK).body("You liked this post");
     }
 
-    @PatchMapping(ApiEndpoints.POST_TEMP_SAVE)
-    public ResponseEntity<?> saveAndUnsavedPost(
+    @DeleteMapping(ApiEndpoints.POST_LIKE)
+    public ResponseEntity<?> unlikePost(
             @PathVariable(value = "postId") Integer postId,
-            @PathVariable(value = "userId") String userId
+            @RequestHeader("userId") String userId
+    ) {
+        postService.likeAndUnlikePost(postId, userId);
+        return ResponseEntity.status(HttpStatus.OK).body("You unliked this post");
+    }
+
+    @PostMapping(ApiEndpoints.POST_SAVE)
+    public ResponseEntity<?> savePost(
+            @PathVariable(value = "postId") Integer postId,
+            @RequestHeader("userId") String userId
     ){
         postService.saveAndUnsavedPost(postId, userId);
-        return ResponseEntity.status(HttpStatus.OK).body("You saved or unsaved this post");
+        return ResponseEntity.status(HttpStatus.OK).body("You saved this post");
     }
 
-    @DeleteMapping(ApiEndpoints.POST_DELETE)
+    @DeleteMapping(ApiEndpoints.POST_SAVE)
+    public ResponseEntity<?> unsavePost(
+            @PathVariable(value = "postId") Integer postId,
+            @RequestHeader("userId") String userId
+    ){
+        postService.saveAndUnsavedPost(postId, userId);
+        return ResponseEntity.status(HttpStatus.OK).body("You unsaved this post");
+    }
+
+    @DeleteMapping(ApiEndpoints.POST_DETAIL)
     public ResponseEntity<?> deletePost(
-            @PathVariable(value = "id") Integer id,
+            @PathVariable(value = "postId") Integer postId,
             @RequestHeader("id") String userId
     ) {
-        postService.deletePost(id, userId);
+        postService.deletePost(postId, userId);
         return ResponseEntity.status(HttpStatus.OK).body("Post has been deleted");
     }
 
