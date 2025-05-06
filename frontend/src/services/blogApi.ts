@@ -35,7 +35,7 @@ export interface Post {
 
 // Tạo một instance của axios
 export const api = axios.create({
-  baseURL: 'https://api.example.com', // URL giả lập
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:9191',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
