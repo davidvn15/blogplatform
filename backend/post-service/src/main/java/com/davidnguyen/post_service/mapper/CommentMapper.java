@@ -6,6 +6,7 @@ import com.davidnguyen.post_service.entity.Comment;
 import com.davidnguyen.post_service.service.UserApiClient;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,18 +20,29 @@ public class CommentMapper {
 
     public Comment toComment(CommentDto commentDto) {
         return Comment.builder()
-//                .userId(commentDto.getUserId())
                 .content(commentDto.getContent())
-//                .likes(commentDto.getLikes().stream().map(UserDto::getId).collect(Collectors.toSet()))
+                .status(commentDto.getStatus())
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .authorId(commentDto.getAuthorId())
                 .build();
     }
 
     public CommentDto toCommentDto(Comment comment) {
         return CommentDto.builder()
-//                .userId(comment.getUserId())
+                .id(comment.getId())
+                .postId(comment.getPost().getId())
+                .authorId(comment.getAuthorId())
+                .parentCommentId(comment.getParent() != null ? comment.getParent().getId() : null)
                 .content(comment.getContent())
-//                .likes(comment.getLikes().stream().map(userApiClient::findUserById).collect(Collectors.toSet()))
-//                .userDto(userApiClient.findUserById(comment.getUserId())) // Set the userDto field
+                .status(comment.getStatus())
+                .createdAt(comment.getCreatedAt())
+                .updatedAt(comment.getUpdatedAt())
+                .likes(comment.getLikes().stream().map(userApiClient::findUserById).collect(Collectors.toSet()))
+                .userDto(userApiClient.findUserById(comment.getAuthorId().toString()))
+                .replies(comment.getReplies() != null ? 
+                    comment.getReplies().stream().map(this::toCommentDto).collect(Collectors.toList()) : 
+                    null)
                 .build();
     }
 }

@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.HashSet;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -67,4 +68,29 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private List<PostView> postViews;
+
+    @ElementCollection
+    @CollectionTable(name = "post_likes", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "user_id")
+    private Set<String> likes = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "post_saved", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "user_id")
+    private Set<String> saved = new HashSet<>();
+
+    @Column(name = "user_id")
+    private String userId;
+
+    public Set<String> getLikes() {
+        return likes;
+    }
+
+    public Set<String> getSaved() {
+        return saved;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
 }

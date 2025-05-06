@@ -6,6 +6,8 @@ import lombok.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.Set;
+import java.util.HashSet;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -44,4 +46,16 @@ public class Comment {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Column(name = "author_id")
+    private UUID authorId;
+
+    @ElementCollection
+    @CollectionTable(name = "comment_likes", joinColumns = @JoinColumn(name = "comment_id"))
+    @Column(name = "user_id")
+    private Set<String> likes = new HashSet<>();
+
+    public UUID getAuthorId() {
+        return authorId;
+    }
 }

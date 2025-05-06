@@ -2,6 +2,7 @@ package com.davidnguyen.post_service.service;
 
 import com.davidnguyen.post_service.dto.CreateUpdatePostRequest;
 import com.davidnguyen.post_service.dto.PostReqDto;
+import com.davidnguyen.post_service.dto.PostRespDto;
 import com.davidnguyen.post_service.dto.UserDto;
 import com.davidnguyen.post_service.entity.Post;
 import com.davidnguyen.post_service.file.FileStorageService;
@@ -19,10 +20,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.*;
 
 @DisplayName("User service test")
@@ -41,146 +45,144 @@ public class PostServiceTest {
 
     @DisplayName("get all post successfully")
     @Test
-    void test_getAllPosts(){
-        //given
+    void test_getAllPosts() {
+        // given
         Post post1 = new Post();
-        post1.setId(1);
+        post1.setId(UUID.randomUUID());
         post1.setContent("post1");
 
         Post post2 = new Post();
-        post2.setId(2);
+        post2.setId(UUID.randomUUID());
         post2.setContent("post2");
 
-        List<Post> postList = new ArrayList<>(){{
+        List<Post> postList = new ArrayList<>() {{
             add(post1);
             add(post2);
         }};
 
-        PostReqDto postReqDto1 = new PostReqDto();
-        postReqDto1.setContent("post1");
+        PostRespDto postRespDto1 = new PostRespDto();
+        postRespDto1.setContent("post1");
 
-        PostReqDto postReqDto2 = new PostReqDto();
-        postReqDto2.setContent("post2");
+        PostRespDto postRespDto2 = new PostRespDto();
+        postRespDto2.setContent("post2");
 
-        List<PostReqDto> postReqDtoList =  new ArrayList<>(){{
-            add(postReqDto1);
-            add(postReqDto2);
+        List<PostRespDto> postRespDtoList = new ArrayList<>() {{
+            add(postRespDto1);
+            add(postRespDto2);
         }};
 
-        //when
+        // when
         when(postRepository.findAll()).thenReturn(postList);
-        when(postMapper.toPostRespDTO(post1)).thenReturn(postReqDto1);
-        when(postMapper.toPostRespDTO(post2)).thenReturn(postReqDto2);
+        when(postMapper.toPostRespDTO(post1)).thenReturn(postRespDto1);
+        when(postMapper.toPostRespDTO(post2)).thenReturn(postRespDto2);
 
-        //then
-        List<PostReqDto> resultList = postService.getAllPosts();
+        // then
+        List<PostRespDto> resultList = postService.getAllPosts();
 
-        assertEquals(resultList, postReqDtoList);
+        assertEquals(resultList, postRespDtoList);
 
-        //verify
+        // verify
         verify(postRepository).findAll();
         verifyNoMoreInteractions(postRepository);
     }
 
     @DisplayName("get post by id successfully")
     @Test
-    void test_getPostById(){
-        //given
-        Integer id = 1;
+    void test_getPostById() {
+        // given
+        UUID id = UUID.randomUUID();
 
         Post post = new Post();
+        post.setId(id);
         post.setContent("post1");
 
-        PostReqDto postReqDto = new PostReqDto();
-        postReqDto.setContent("postdto1");
+        PostRespDto postRespDto = new PostRespDto();
+        postRespDto.setContent("postdto1");
 
-        //when
+        // when
         when(postRepository.findById(id)).thenReturn(Optional.of(post));
-        when(postMapper.toPostRespDTO(post)).thenReturn(postReqDto);
+        when(postMapper.toPostRespDTO(post)).thenReturn(postRespDto);
 
-        //then
-        PostReqDto result = postService.getPostById(id);
+        // then
+        PostRespDto result = postService.getPostById(id);
 
-        assertEquals(result, postReqDto);
+        assertEquals(result, postRespDto);
 
-        //verfiy
+        // verify
         verify(postRepository).findById(id);
         verifyNoMoreInteractions(postRepository);
     }
 
     @DisplayName("should throw exception when post not found with given id")
     @Test
-    void getPostById_shouldThrowException_whenPostNotFoundWithGivenId(){
-        //given
-        Integer id = 2;
+    void getPostById_shouldThrowException_whenPostNotFoundWithGivenId() {
+        // given
+        UUID id = UUID.randomUUID();
 
-        //when
+        // when
         when(postRepository.findById(id)).thenReturn(Optional.empty());
 
-        //that
-        Assertions.assertThatThrownBy(
-                () -> postService.getPostById(id)
-        ).isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Post not found with this id ");
-
-
+        // then
+        assertThrows(ResourceNotFoundException.class, () -> postService.getPostById(id));
+        verify(postRepository).findById(id);
+        verifyNoMoreInteractions(postRepository);
     }
 
     @DisplayName("get user post successfully")
     @Test
-    void test_getUserPosts(){
-        //given
+    void test_getUserPosts() {
+        // given
         String userId = "i1";
 
         Post post1 = new Post();
+        post1.setId(UUID.randomUUID());
         post1.setContent("post1");
         post1.setUserId("i1");
 
         Post post2 = new Post();
+        post2.setId(UUID.randomUUID());
         post2.setContent("post2");
         post2.setUserId("i1");
 
-        List<Post> postList = new ArrayList<>(){{
+        List<Post> postList = new ArrayList<>() {{
             add(post1);
             add(post2);
         }};
 
-        PostReqDto postReqDto1 = new PostReqDto();
-        postReqDto1.setContent("postDto1");
-        postReqDto1.setUserId("i1");
+        PostRespDto postRespDto1 = new PostRespDto();
+        postRespDto1.setContent("postDto1");
+        postRespDto1.setUserId("i1");
 
-        PostReqDto postReqDto2 = new PostReqDto();
-        postReqDto2.setContent("postDto2");
-        postReqDto2.setUserId("i1");
+        PostRespDto postRespDto2 = new PostRespDto();
+        postRespDto2.setContent("postDto2");
+        postRespDto2.setUserId("i1");
 
-        List<PostReqDto> postReqDtoList = new ArrayList<>(){{
-            add(postReqDto1);
-            add(postReqDto2);
+        List<PostRespDto> postRespDtoList = new ArrayList<>() {{
+            add(postRespDto1);
+            add(postRespDto2);
         }};
 
-        //when
+        // when
         when(postRepository.findByUserId(userId)).thenReturn(postList);
-        when(postMapper.toPostRespDTO(post1)).thenReturn(postReqDto1);
-        when(postMapper.toPostRespDTO(post2)).thenReturn(postReqDto2);
+        when(postMapper.toPostRespDTO(post1)).thenReturn(postRespDto1);
+        when(postMapper.toPostRespDTO(post2)).thenReturn(postRespDto2);
 
-        //then
-        List<PostReqDto> result = postService.getUserPosts(userId);
+        // then
+        List<PostRespDto> result = postService.getUserPosts(userId);
 
-        assertEquals(result, postReqDtoList);
+        assertEquals(result, postRespDtoList);
 
-        //verify
+        // verify
         verify(postRepository).findByUserId(userId);
         verify(postMapper).toPostRespDTO(post1);
         verify(postMapper).toPostRespDTO(post2);
-        verifyNoMoreInteractions(postRepository,postMapper);
-
+        verifyNoMoreInteractions(postRepository, postMapper);
     }
-
 
     @DisplayName("get user saved successfully")
     @Test
-    void test_getUserSaved(){
-        //given
+    void test_getUserSaved() {
+        // given
         String userId = "i1";
 
         Post post1 = new Post();
@@ -193,43 +195,43 @@ public class PostServiceTest {
         post2.setUserId("i2");
         post2.setSaved(Set.of("i2"));
 
-
-        List<Post> postList = new ArrayList<>(){{
+        List<Post> postList = new ArrayList<>() {{
             add(post1);
             add(post2);
         }};
 
-        PostReqDto postReqDto = new PostReqDto();
-        postReqDto.setContent("postDto1");
-        postReqDto.setUserId("i1");
+        PostRespDto postRespDto1 = new PostRespDto();
+        postRespDto1.setContent("postDto1");
+        postRespDto1.setUserId("i1");
 
-        PostReqDto postReqDto2 = new PostReqDto();
-        postReqDto2.setContent("postDto2");
-        postReqDto2.setUserId("i2");
+        PostRespDto postRespDto2 = new PostRespDto();
+        postRespDto2.setContent("postDto2");
+        postRespDto2.setUserId("i2");
 
-        List<PostReqDto> postReqDtoList = new ArrayList<>(){{
-            add(postReqDto);
+        List<PostRespDto> postRespDtoList = new ArrayList<>() {{
+            add(postRespDto1);
         }};
 
-        //when
+        // when
         when(postRepository.findAll()).thenReturn(postList);
-        when(postMapper.toPostRespDTO(post1)).thenReturn(postReqDto);
+        when(postMapper.toPostRespDTO(post1)).thenReturn(postRespDto1);
 
-        //then
-        List<PostReqDto> result = postService.getUserSaved(userId);
+        // then
+        List<PostRespDto> result = postService.getUserSaved(userId);
 
-        assertEquals(result.size(),1);
+        assertEquals(result.size(), 1);
 
+        // verify
         verify(postRepository).findAll();
         verify(postMapper).toPostRespDTO(post1);
+        verifyNoMoreInteractions(postRepository, postMapper);
     }
-
 
     @DisplayName("get saved count")
     @Test
     void test_getSavedCount(){
         //given
-        Integer id = 1;
+        UUID id = UUID.randomUUID();
 
         Post post = new Post();
         post.setContent("post1");
@@ -243,67 +245,175 @@ public class PostServiceTest {
         assertEquals(count,1);
     }
 
-    @Disabled
+    @DisplayName("create post successfully")
     @Test
     void test_createPost() {
-        // Given
+        // given
+        PostReqDto postRequest = PostReqDto.builder()
+                .title("Test Post")
+                .slug("test-post")
+                .excerpt("Test excerpt")
+                .thumbnail("path/to/thumbnail.jpg")
+                .featuredImageUrl("path/to/featured.jpg")
+                .content("Test content")
+                .status("DRAFT")
+                .readingTimeMinutes(5)
+                .isFeatured(false)
+                .metaTitle("Meta Title")
+                .metaDescription("Meta Description")
+                .authorId(UUID.randomUUID())
+                .categoryId(UUID.randomUUID())
+                .tagIds(Set.of(UUID.randomUUID()))
+                .build();
+
+        Post post = new Post();
+        post.setTitle(postRequest.getTitle());
+        post.setContent(postRequest.getContent());
+
+        // when
+        when(postMapper.toPostEntity(postRequest)).thenReturn(post);
+        when(postRepository.save(post)).thenReturn(post);
+
+        // then
+        postService.createPost(postRequest);
+
+        // verify
+        verify(postMapper).toPostEntity(postRequest);
+        verify(postRepository).save(post);
+        verifyNoMoreInteractions(postMapper, postRepository);
+    }
+
+    @DisplayName("create post successfully with thumbnail")
+    @Test
+    void test_createPostWithThumbnail() throws IOException {
+        // given
+        String userId = "i1";
+        String content = "content";
+        String title = "title";
         MultipartFile thumbnailFile = mock(MultipartFile.class);
-        String title = "Sample Title";
-        String content = "Sample Content";
-        String userId = "user123";
-        String thumbnailPath = "path/to/thumbnail";
+        UUID postId = UUID.randomUUID();
 
-        // Mocking the behavior of fileStorageService
-        when(fileStorageService.saveFile(thumbnailFile)).thenReturn(thumbnailPath);
+        Post post = new Post();
+        post.setId(postId);
+        post.setContent(content);
+        post.setTitle(title);
+        post.setUserId(userId);
 
-        // Mocking the behavior of postMapper
         PostReqDto postReqDto = PostReqDto.builder()
                 .title(title)
                 .content(content)
-                .userId(userId)
-                .thumbnail(thumbnailPath)
-                .likes(new HashSet<>())
-                .saved(new HashSet<>())
-                .comments(new ArrayList<>())
+                .authorId(postId)
+                .thumbnail("thumbnail.jpg")
                 .build();
-        Post post = new Post();
-        when(postMapper.toPostEntity(postReqDto)).thenReturn(post);
 
-        // When
-        postService.createPost(thumbnailFile, title, content, userId);
+        // when
+        when(thumbnailFile.getOriginalFilename()).thenReturn("test.jpg");
+        when(thumbnailFile.getContentType()).thenReturn("image/jpeg");
+        when(thumbnailFile.getBytes()).thenReturn(new byte[0]);
+        when(fileStorageService.saveFile(thumbnailFile)).thenReturn("thumbnail.jpg");
+        when(postMapper.toPostEntity(any())).thenReturn(post);
+        when(postRepository.save(any())).thenReturn(post);
 
-        // Then
+        // then
+        postService.createPost(postReqDto);
+
+        // verify
         verify(fileStorageService).saveFile(thumbnailFile);
-        verify(postMapper).toPostEntity(postReqDto);
-        verify(postRepository).save(post);
+        verify(postRepository).save(any());
+        verify(postMapper).toPostEntity(any());
+        verifyNoMoreInteractions(postRepository, postMapper, fileStorageService);
     }
 
+    @DisplayName("save post successfully")
     @Test
-    void test_createPost_shouldThrowException_whenFailedToSaveThumbnail() {
-        // Given
-        MultipartFile thumbnailFile = mock(MultipartFile.class);
-        String title = "Sample Title";
-        String content = "Sample Content";
-        String userId = "user123";
+    void test_savePost() {
+        // given
+        UUID postId = UUID.randomUUID();
+        String userId = "i1";
 
-        // Mocking the behavior of fileStorageService
-        when(fileStorageService.saveFile(thumbnailFile)).thenReturn(null);
+        Post post = new Post();
+        post.setId(postId);
+        post.setContent("content");
+        post.setUserId("user1");
+        post.setSaved(new HashSet<>());
 
-        // When & Then
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
-            postService.createPost(thumbnailFile, title, content, userId);
-        });
-        assertEquals("Failed to save thumbnail", thrown.getMessage());
+        // when
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.save(any())).thenReturn(post);
 
-        // Verify
-        verify(fileStorageService).saveFile(thumbnailFile);
-        verifyNoMoreInteractions(postMapper, postRepository);
+        // then
+        postService.savePost(postId, userId);
+
+        // verify
+        verify(postRepository).findById(postId);
+        verify(postRepository).save(post);
+        verifyNoMoreInteractions(postRepository);
+        assertTrue(post.getSaved().contains(userId));
+    }
+
+    @DisplayName("unsave post successfully")
+    @Test
+    void test_unsavePost() {
+        // given
+        UUID postId = UUID.randomUUID();
+        String userId = "i1";
+
+        Post post = new Post();
+        post.setId(postId);
+        post.setContent("content");
+        post.setUserId("user1");
+        post.setSaved(new HashSet<>(Collections.singletonList(userId)));
+
+        // when
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.save(any())).thenReturn(post);
+
+        // then
+        postService.unsavePost(postId, userId);
+
+        // verify
+        verify(postRepository).findById(postId);
+        verify(postRepository).save(post);
+        verifyNoMoreInteractions(postRepository);
+        assertFalse(post.getSaved().contains(userId));
+    }
+
+    @DisplayName("save post should throw exception when post not found")
+    @Test
+    void savePost_shouldThrowException_whenPostNotFoundWithGivenId() {
+        // given
+        UUID postId = UUID.randomUUID();
+        String userId = "i1";
+
+        // when
+        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // then
+        assertThrows(ResourceNotFoundException.class, () -> postService.savePost(postId, userId));
+        verify(postRepository).findById(postId);
+        verifyNoMoreInteractions(postRepository);
+    }
+
+    @DisplayName("unsave post should throw exception when post not found")
+    @Test
+    void unsavePost_shouldThrowException_whenPostNotFoundWithGivenId() {
+        // given
+        UUID postId = UUID.randomUUID();
+        String userId = "i1";
+
+        // when
+        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // then
+        assertThrows(ResourceNotFoundException.class, () -> postService.unsavePost(postId, userId));
+        verify(postRepository).findById(postId);
+        verifyNoMoreInteractions(postRepository);
     }
 
     @Test
     void test_updatePost(){
         //given
-        Integer id = 1;
+        UUID id = UUID.randomUUID();
         CreateUpdatePostRequest request = new CreateUpdatePostRequest();
         request.setTitle("update");
         request.setContent("content");
@@ -337,7 +447,7 @@ public class PostServiceTest {
     @Test
     void updatePost_shouldThrowException_whenPostNotFoundWithGivenId(){
         //given
-        Integer id = 1;
+        UUID id = UUID.randomUUID();
         CreateUpdatePostRequest request = new CreateUpdatePostRequest();
         request.setTitle("update");
         request.setContent("content");
@@ -359,7 +469,7 @@ public class PostServiceTest {
     @Test
     void updatePost_shouldThrowException_whenUserNoAccess(){
         //given
-        Integer postId = 1;
+        UUID postId = UUID.randomUUID();
         String userId = "user1";
         CreateUpdatePostRequest request = new CreateUpdatePostRequest();
         request.setTitle("Updated Title");
@@ -394,7 +504,7 @@ public class PostServiceTest {
     @Test
     void test_uploadThumbnail(){
         //given
-        Integer postId = 1;
+        UUID postId = UUID.randomUUID();
         String userId = "i1";
         MultipartFile thumbnailFile = mock(MultipartFile.class);
         String thumbnailPath = "path/to/thumbnail";
@@ -425,7 +535,7 @@ public class PostServiceTest {
     @Test
     void updateThumbnail_shouldThrowException_whenPostNotFoundWithGivenId(){
         //given
-        Integer postId = 1;
+        UUID postId = UUID.randomUUID();
         String userId = "i1";
         MultipartFile thumbnailFile = mock(MultipartFile.class);
         String thumbnailPath = "path/to/thumbnail";
@@ -452,7 +562,7 @@ public class PostServiceTest {
     @Test
     void updateThumbnail_shouldReturnException_whenUserNoAccess(){
         // Given
-        Integer postId = 1;
+        UUID postId = UUID.randomUUID();
         String userId = "user123";
         MultipartFile thumbnailFile = mock(MultipartFile.class);
 
@@ -484,7 +594,7 @@ public class PostServiceTest {
     @Test
     void uploadThumbnail_shouldThrowException_whenThumbnailIsNull(){
         // Given
-        Integer postId = 1;
+        UUID postId = UUID.randomUUID();
         String userId = "user123";
         MultipartFile thumbnailFile = mock(MultipartFile.class);
 
@@ -512,121 +622,85 @@ public class PostServiceTest {
         verify(userApiClient).findUserById(userId);
     }
 
+    @DisplayName("like post successfully")
     @Test
-    void test_likeAndUnlikePost(){
-        //given
-        Integer postId = 1;
-        String userId = "i1";
-
-        String likes1 = "i1";
-        String likes2 = "i2";
-
-        Set<String> likelist = new HashSet<>(){{
-            add(likes1);
-            add(likes2);
-        }};
-
+    void test_likePost() {
+        // given
+        UUID postId = UUID.randomUUID();
+        String userId = "user1";
         Post post = new Post();
-        post.setTitle("post");
-        post.setLikes(likelist);
+        post.setId(postId);
+        post.setLikes(new HashSet<>());
 
-        //when
+        // when
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        postService.likePost(postId, userId);
 
-        //then
-        postService.likeAndUnlikePost(postId,userId);
-
-        assertEquals(post.getLikes().size(),1);
-
+        // then
+        verify(postRepository).findById(postId);
+        verify(postRepository).save(post);
+        assertEquals(1, post.getLikes().size());
+        assertTrue(post.getLikes().contains(userId));
     }
 
+    @DisplayName("unlike post successfully")
     @Test
-    void likeAndUnlikePost_shouldThrowException_whenPostNotFoundWithGivenId(){
-        //given
-        Integer postId = 1;
-        String userId = "i1";
-
-        String likes1 = "i1";
-        String likes2 = "i2";
-
-        Set<String> likelist = new HashSet<>(){{
-            add(likes1);
-            add(likes2);
-        }};
-
+    void test_unlikePost() {
+        // given
+        UUID postId = UUID.randomUUID();
+        String userId = "user1";
         Post post = new Post();
-        post.setTitle("post");
-        post.setLikes(likelist);
+        post.setId(postId);
+        post.setLikes(new HashSet<>(Collections.singletonList(userId)));
 
-        //when
+        // when
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        postService.unlikePost(postId, userId);
+
+        // then
+        verify(postRepository).findById(postId);
+        verify(postRepository).save(post);
+        assertEquals(0, post.getLikes().size());
+        assertFalse(post.getLikes().contains(userId));
+    }
+
+    @DisplayName("like post should throw exception when post not found")
+    @Test
+    void likePost_shouldThrowException_whenPostNotFoundWithGivenId() {
+        // given
+        UUID postId = UUID.randomUUID();
+        String userId = "user1";
+
+        // when
         when(postRepository.findById(postId)).thenReturn(Optional.empty());
 
-        //then
-        Assertions.assertThatThrownBy(
-                () -> postService.likeAndUnlikePost(postId,userId)
-        ).isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Post not found with this id ");
+        // then
+        assertThrows(ResourceNotFoundException.class, () -> postService.likePost(postId, userId));
+        verify(postRepository).findById(postId);
+        verifyNoMoreInteractions(postRepository);
     }
 
+    @DisplayName("unlike post should throw exception when post not found")
     @Test
-    void test_saveAndUnsavedPost(){
-        //given
-        Integer postId = 1;
-        String userId = "i1";
+    void unlikePost_shouldThrowException_whenPostNotFoundWithGivenId() {
+        // given
+        UUID postId = UUID.randomUUID();
+        String userId = "user1";
 
-        String saved1 = "i1";
-        String saved2 = "i2";
-
-        Set<String> saveList = new HashSet<>(){{
-            add(saved1);
-            add(saved2);
-        }};
-
-        Post post = new Post();
-        post.setTitle("post");
-        post.setSaved(saveList);
-
-        //when
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-
-        //then
-        postService.saveAndUnsavedPost(postId,userId);
-
-        assertEquals(post.getSaved().size(),1);
-    }
-
-    @Test
-    void saveAndUnsavedPost_shouldThrowException_whenPostNotFoundWithGivenId(){
-        //given
-        Integer postId = 1;
-        String userId = "i1";
-
-        String saved1 = "i1";
-        String saved2 = "i2";
-
-        Set<String> saveList = new HashSet<>(){{
-            add(saved1);
-            add(saved2);
-        }};
-
-        Post post = new Post();
-        post.setTitle("post");
-        post.setLikes(saveList);
-
-        //when
+        // when
         when(postRepository.findById(postId)).thenReturn(Optional.empty());
 
-        //then
-        Assertions.assertThatThrownBy(
-                        () -> postService.saveAndUnsavedPost(postId,userId)
-                ).isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Post not found with this id ");
+        // then
+        assertThrows(ResourceNotFoundException.class, () -> postService.unlikePost(postId, userId));
+        verify(postRepository).findById(postId);
+        verifyNoMoreInteractions(postRepository);
     }
 
+    @DisplayName("delete post successfully")
     @Test
-    void test_deletePost(){
-        //given
-        Integer postId = 1;
+    void test_deletePost() {
+        // given
+        UUID postId = UUID.randomUUID();
         String userId = "i1";
 
         Post post = new Post();
@@ -637,23 +711,24 @@ public class PostServiceTest {
         apiUser.setId(userId);
         apiUser.setRoles(List.of("ROLE_ADMIN"));
 
-        //when
+        // when
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(userApiClient.findUserById(userId)).thenReturn(apiUser);
 
-        //then
-        postService.deletePost(postId,userId);
+        // then
+        postService.deletePost(postId, userId);
 
-        //verify
+        // verify
         verify(postRepository).findById(postId);
         verify(userApiClient).findUserById(userId);
+        verify(postRepository).deleteById(postId);
     }
 
     @DisplayName("deletePost should throw ResourceNoAccessException when user has no access")
     @Test
     void test_deletePost_shouldThrowResourceNoAccessException_whenUserHasNoAccess() {
         // Given
-        Integer postId = 1;
+        UUID postId = UUID.randomUUID();
         String userId = "user123";
         Post post = new Post();
         post.setId(postId);
@@ -683,7 +758,7 @@ public class PostServiceTest {
     @Test
     void test_deletePost_shouldThrowResourceNotFoundException_whenPostNotFound() {
         // Given
-        Integer postId = 1;
+        UUID postId = UUID.randomUUID();
         String userId = "user123";
 
         UserDto apiUser = new UserDto();
@@ -695,9 +770,9 @@ public class PostServiceTest {
 
         // Then
         Assertions.assertThatThrownBy(
-                () -> postService.deletePost(postId,userId)
+                () -> postService.deletePost(postId, userId)
         ).isInstanceOf(ResourceNotFoundException.class)
-                        .hasMessageContaining("Post not found with this id ");
+                .hasMessageContaining("Post not found with this id ");
 
         verify(postRepository).findById(postId);
         verify(postRepository, never()).deleteById(postId);

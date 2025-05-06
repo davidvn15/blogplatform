@@ -17,17 +17,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-@DisplayName("User service test")
+@DisplayName("Comment service test")
 @ExtendWith(MockitoExtension.class)
 public class CommentServiceTest {
     @Mock
@@ -42,66 +43,67 @@ public class CommentServiceTest {
     private CommentService commentService;
 
     @Test
-    void test_createComment(){
-        //given
-        Integer postId = 1;
-        String userId = "i1";
+    void test_createComment() {
+        // given
+        UUID postId = UUID.randomUUID();
+        UUID authorId = UUID.randomUUID();
 
         Post post = new Post();
-        post.setUserId(userId);
-        post.setContent("post");
+        post.setId(postId);
 
-        Comment comment = new Comment();
-        comment.setUserId(userId);
-        comment.setContent("content");
-        comment.setLikes(new HashSet<>());
+        Comment comment = Comment.builder()
+                .content("content")
+                .authorId(authorId)
+                .status("ACTIVE")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
 
-        CommentDto commentDto = new CommentDto();
-        commentDto.setUserId(userId);
-        commentDto.setContent("content");
-        commentDto.setLikes(new HashSet<>());
+        CommentDto commentDto = CommentDto.builder()
+                .content("content")
+                .status("ACTIVE")
+                .build();
 
-        //when
+        List<CommentDto> commentDtos = Collections.singletonList(commentDto);
+
+        // when
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(commentMapper.toComment(any(CommentDto.class))).thenReturn(comment);
 
-        //then
-        commentService.createComment(postId,commentDto,userId);
+        // then
+        commentService.createComment(postId, commentDtos, authorId);
 
-        verify(postRepository, times(1)).findById(postId);
-        verify(commentMapper, times(1)).toComment(any(CommentDto.class));
-        verify(commentRepository, times(1)).save(any(Comment.class));
+        // verify
+        verify(postRepository).findById(postId);
+        verify(commentMapper).toComment(any(CommentDto.class));
+        verify(postRepository).save(post);
+        verify(commentRepository).saveAll(anyList());
     }
 
     @Test
-    void createComment_shouldThrowException_whenPostNotFoundWithGivenId(){
-        //given
-        Integer postId = 1;
-        String userId = "i1";
+    void createComment_shouldThrowException_whenPostNotFoundWithGivenId() {
+        // given
+        UUID postId = UUID.randomUUID();
+        UUID authorId = UUID.randomUUID();
 
-        Post post = new Post();
-        post.setUserId(userId);
-        post.setContent("post");
+        CommentDto commentDto = CommentDto.builder()
+                .content("content")
+                .status("ACTIVE")
+                .build();
 
-        Comment comment = new Comment();
-        comment.setUserId(userId);
-        comment.setContent("content");
-        comment.setLikes(new HashSet<>());
+        List<CommentDto> commentDtos = Collections.singletonList(commentDto);
 
-        CommentDto commentDto = new CommentDto();
-        commentDto.setUserId(userId);
-        commentDto.setContent("content");
-        commentDto.setLikes(new HashSet<>());
-
-        //when
+        // when
         when(postRepository.findById(postId)).thenReturn(Optional.empty());
 
-        //then
+        // then
         Assertions.assertThatThrownBy(
-                () -> commentService.createComment(postId,commentDto,userId)
+                () -> commentService.createComment(postId, commentDtos, authorId)
         ).isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Post not found with this id ");
 
+        verify(postRepository).findById(postId);
+        verifyNoMoreInteractions(postRepository, commentMapper, commentRepository);
     }
 
     @Test
@@ -111,16 +113,23 @@ public class CommentServiceTest {
         String userId = "i1";
         String newContent = "updated content";
 
-        Comment comment = new Comment();
-        comment.setUserId(userId);
-        comment.setContent("original content");
+        Comment comment = Comment.builder()
+                .authorId(UUID.fromString(userId))
+                .content("original content")
+                .status("ACTIVE")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
 
-        CommentDto commentDto = new CommentDto();
-        commentDto.setContent(newContent);
+        CommentDto commentDto = CommentDto.builder()
+                .content(newContent)
+                .status("ACTIVE")
+                .build();
 
-        UserDto userDto = new UserDto();
-        userDto.setId(userId);
-        userDto.setRoles(List.of("ROLE_USER"));
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .roles(List.of("ROLE_USER"))
+                .build();
 
         // when
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
@@ -129,9 +138,9 @@ public class CommentServiceTest {
         // then
         commentService.updateComment(commentId, commentDto, userId);
 
-        verify(commentRepository, times(1)).findById(commentId);
-        verify(userApiClient, times(1)).findUserById(userId);
-        verify(commentRepository, times(1)).save(comment);
+        verify(commentRepository).findById(commentId);
+        verify(userApiClient).findUserById(userId);
+        verify(commentRepository).save(comment);
         assertEquals(newContent, comment.getContent());
     }
 
@@ -143,16 +152,23 @@ public class CommentServiceTest {
         String anotherUserId = "i2";
         String newContent = "updated content";
 
-        Comment comment = new Comment();
-        comment.setUserId(anotherUserId); // Different user
-        comment.setContent("original content");
+        Comment comment = Comment.builder()
+                .authorId(UUID.fromString(anotherUserId))
+                .content("original content")
+                .status("ACTIVE")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
 
-        CommentDto commentDto = new CommentDto();
-        commentDto.setContent(newContent);
+        CommentDto commentDto = CommentDto.builder()
+                .content(newContent)
+                .status("ACTIVE")
+                .build();
 
-        UserDto userDto = new UserDto();
-        userDto.setId(userId);
-        userDto.setRoles(List.of("ROLE_USER"));
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .roles(List.of("ROLE_USER"))
+                .build();
 
         // when
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
@@ -163,9 +179,9 @@ public class CommentServiceTest {
             commentService.updateComment(commentId, commentDto, userId);
         });
 
-        verify(commentRepository, times(1)).findById(commentId);
-        verify(userApiClient, times(1)).findUserById(userId);
-        verify(commentRepository, times(0)).save(any(Comment.class));
+        verify(commentRepository).findById(commentId);
+        verify(userApiClient).findUserById(userId);
+        verify(commentRepository, never()).save(any(Comment.class));
     }
 
     @Test
@@ -175,8 +191,10 @@ public class CommentServiceTest {
         String userId = "i1";
         String newContent = "updated content";
 
-        CommentDto commentDto = new CommentDto();
-        commentDto.setContent(newContent);
+        CommentDto commentDto = CommentDto.builder()
+                .content(newContent)
+                .status("ACTIVE")
+                .build();
 
         // when
         when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
@@ -186,30 +204,40 @@ public class CommentServiceTest {
             commentService.updateComment(commentId, commentDto, userId);
         });
 
-        verify(commentRepository, times(1)).findById(commentId);
-        verify(userApiClient, times(0)).findUserById(anyString());
-        verify(commentRepository, times(0)).save(any(Comment.class));
+        verify(commentRepository).findById(commentId);
+        verify(userApiClient, never()).findUserById(anyString());
+        verify(commentRepository, never()).save(any(Comment.class));
     }
 
     @Test
-    void test_deleteComment(){
-        //given
+    void test_deleteComment() {
+        // given
         Integer commentId = 1;
         String userId = "i1";
 
-        Comment comment = new Comment();
-        comment.setContent("comment content");
+        Comment comment = Comment.builder()
+                .authorId(UUID.fromString(userId))
+                .content("comment content")
+                .status("ACTIVE")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
 
-        UserDto apiUser = new UserDto();
-        apiUser.setId("i1");
-        apiUser.setRoles(List.of("ROLE_ADMIN"));
+        UserDto apiUser = UserDto.builder()
+                .id(userId)
+                .roles(List.of("ROLE_ADMIN"))
+                .build();
 
-        //when
+        // when
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
         when(userApiClient.findUserById(userId)).thenReturn(apiUser);
 
-        //then
-        commentService.deleteComment(commentId,userId);
+        // then
+        commentService.deleteComment(commentId, userId);
+
+        verify(commentRepository).findById(commentId);
+        verify(userApiClient).findUserById(userId);
+        verify(commentRepository).deleteById(commentId);
     }
 
     @Test
@@ -218,15 +246,19 @@ public class CommentServiceTest {
         Integer commentId = 1;
         String userId = "i1";
         String anotherUserId = "i2";
-        String newContent = "updated content";
 
-        Comment comment = new Comment();
-        comment.setUserId(anotherUserId); // Different user
-        comment.setContent("original content");
+        Comment comment = Comment.builder()
+                .authorId(UUID.fromString(anotherUserId))
+                .content("original content")
+                .status("ACTIVE")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
 
-        UserDto userDto = new UserDto();
-        userDto.setId(userId);
-        userDto.setRoles(List.of("ROLE_USER"));
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .roles(List.of("ROLE_USER"))
+                .build();
 
         // when
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
@@ -237,9 +269,9 @@ public class CommentServiceTest {
             commentService.deleteComment(commentId, userId);
         });
 
-        verify(commentRepository, times(1)).findById(commentId);
-        verify(userApiClient, times(1)).findUserById(userId);
-        verify(commentRepository, times(0)).save(any(Comment.class));
+        verify(commentRepository).findById(commentId);
+        verify(userApiClient).findUserById(userId);
+        verify(commentRepository, never()).deleteById(any());
     }
 
     @Test
@@ -256,9 +288,100 @@ public class CommentServiceTest {
             commentService.deleteComment(commentId, userId);
         });
 
-        verify(commentRepository, times(1)).findById(commentId);
-        verify(userApiClient, times(0)).findUserById(anyString());
-        verify(commentRepository, times(0)).save(any(Comment.class));
+        verify(commentRepository).findById(commentId);
+        verify(userApiClient, never()).findUserById(anyString());
+        verify(commentRepository, never()).deleteById(any());
     }
 
+    @Test
+    void test_likeComment() {
+        // given
+        Integer commentId = 1;
+        String userId = "user1";
+
+        Comment comment = Comment.builder()
+                .id(UUID.randomUUID())
+                .content("Test comment")
+                .status("ACTIVE")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .likes(new HashSet<>())
+                .build();
+
+        // when
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
+        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
+
+        // then
+        commentService.likeComment(commentId, userId);
+
+        // verify
+        verify(commentRepository).findById(commentId);
+        verify(commentRepository).save(comment);
+        assertTrue(comment.getLikes().contains(userId));
+    }
+
+    @Test
+    void test_unlikeComment() {
+        // given
+        Integer commentId = 1;
+        String userId = "user1";
+
+        Comment comment = Comment.builder()
+                .id(UUID.randomUUID())
+                .content("Test comment")
+                .status("ACTIVE")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .likes(new HashSet<>(Collections.singletonList(userId)))
+                .build();
+
+        // when
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
+        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
+
+        // then
+        commentService.unlikeComment(commentId, userId);
+
+        // verify
+        verify(commentRepository).findById(commentId);
+        verify(commentRepository).save(comment);
+        assertFalse(comment.getLikes().contains(userId));
+    }
+
+    @Test
+    void test_likeComment_notFound() {
+        // given
+        Integer commentId = 1;
+        String userId = "user1";
+
+        // when
+        when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
+
+        // then
+        assertThrows(ResourceNotFoundException.class, () -> {
+            commentService.likeComment(commentId, userId);
+        });
+
+        verify(commentRepository).findById(commentId);
+        verify(commentRepository, never()).save(any(Comment.class));
+    }
+
+    @Test
+    void test_unlikeComment_notFound() {
+        // given
+        Integer commentId = 1;
+        String userId = "user1";
+
+        // when
+        when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
+
+        // then
+        assertThrows(ResourceNotFoundException.class, () -> {
+            commentService.unlikeComment(commentId, userId);
+        });
+
+        verify(commentRepository).findById(commentId);
+        verify(commentRepository, never()).save(any(Comment.class));
+    }
 }

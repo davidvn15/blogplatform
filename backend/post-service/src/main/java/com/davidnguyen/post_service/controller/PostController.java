@@ -2,6 +2,7 @@ package com.davidnguyen.post_service.controller;
 
 import com.davidnguyen.post_service.dto.CreateUpdatePostRequest;
 import com.davidnguyen.post_service.dto.PostHelloDto;
+import com.davidnguyen.post_service.dto.PostReqDto;
 import com.davidnguyen.post_service.dto.PostRespDto;
 import com.davidnguyen.post_service.file.FileStorageService;
 import com.davidnguyen.post_service.service.PostService;
@@ -37,7 +38,7 @@ public class PostController {
 
     @GetMapping(ApiEndpoints.POST_DETAIL)
     public ResponseEntity<PostRespDto> getPostById(
-            @PathVariable(value = "postId") Integer postId
+            @PathVariable(value = "postId") UUID postId
     ) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(postService.getPostById(postId));
@@ -53,7 +54,7 @@ public class PostController {
 
     @GetMapping(ApiEndpoints.POST_SAVES_COUNT)
     public ResponseEntity<Integer> getPostSavedCount(
-            @PathVariable(value = "postId") Integer postId
+            @PathVariable(value = "postId") UUID postId
     ){
         return ResponseEntity.status(HttpStatus.OK).body(postService.getSavedCount(postId));
     }
@@ -65,26 +66,19 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body(postService.getUserSaved(userId));
     }
 
-    @PostMapping(value = ApiEndpoints.POSTS, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(ApiEndpoints.POSTS)
     public ResponseEntity<?> createPost(
-            @RequestPart("thumbnail") @Valid MultipartFile thumbnail,
-            @RequestParam("title") @NotNull @Size(max = 30, message = "Title must be less than 30 characters") String title,
-            @RequestParam("content") @NotNull String content,
+            @RequestBody @Valid PostReqDto postRequest,
             @RequestHeader("authorId") UUID authorId
     ) {
-        String thumbnailPath = fileStorageService.saveFile(thumbnail);
-        if (thumbnailPath == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
-                    body("Failed to upload thumbnail");
-        }
-
-        postService.createPost(thumbnail, title,content, authorId);
+        postRequest.setAuthorId(authorId);
+        postService.createPost(postRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body("Post has been created");
     }
 
     @PutMapping(ApiEndpoints.POST_DETAIL)
     public ResponseEntity<?> updatePost(
-            @PathVariable(value = "postId") Integer postId,
+            @PathVariable(value = "postId") UUID postId,
             @RequestBody @Valid CreateUpdatePostRequest updatePostRequest,
             @RequestHeader("id") String userId
     ) {
@@ -94,7 +88,7 @@ public class PostController {
 
     @PatchMapping(value = ApiEndpoints.POST_THUMBNAIL, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> uploadThumbnail(
-            @PathVariable(value = "postId") Integer postId,
+            @PathVariable(value = "postId") UUID postId,
             @RequestPart("file") @Valid MultipartFile thumbnailFile,
             @RequestHeader("authorId") String authorId
     ) {
@@ -104,43 +98,43 @@ public class PostController {
 
     @PostMapping(ApiEndpoints.POST_LIKE)
     public ResponseEntity<?> likePost(
-            @PathVariable(value = "postId") Integer postId,
+            @PathVariable(value = "postId") UUID postId,
             @RequestHeader("userId") String userId
     ) {
-        postService.likeAndUnlikePost(postId, userId);
+        postService.likePost(postId, userId);
         return ResponseEntity.status(HttpStatus.OK).body("You liked this post");
     }
 
     @DeleteMapping(ApiEndpoints.POST_LIKE)
     public ResponseEntity<?> unlikePost(
-            @PathVariable(value = "postId") Integer postId,
+            @PathVariable(value = "postId") UUID postId,
             @RequestHeader("userId") String userId
     ) {
-        postService.likeAndUnlikePost(postId, userId);
+        postService.unlikePost(postId, userId);
         return ResponseEntity.status(HttpStatus.OK).body("You unliked this post");
     }
 
     @PostMapping(ApiEndpoints.POST_SAVE)
     public ResponseEntity<?> savePost(
-            @PathVariable(value = "postId") Integer postId,
+            @PathVariable(value = "postId") UUID postId,
             @RequestHeader("userId") String userId
     ){
-        postService.saveAndUnsavedPost(postId, userId);
+        postService.savePost(postId, userId);
         return ResponseEntity.status(HttpStatus.OK).body("You saved this post");
     }
 
     @DeleteMapping(ApiEndpoints.POST_SAVE)
     public ResponseEntity<?> unsavePost(
-            @PathVariable(value = "postId") Integer postId,
+            @PathVariable(value = "postId") UUID postId,
             @RequestHeader("userId") String userId
     ){
-        postService.saveAndUnsavedPost(postId, userId);
+        postService.unsavePost(postId, userId);
         return ResponseEntity.status(HttpStatus.OK).body("You unsaved this post");
     }
 
     @DeleteMapping(ApiEndpoints.POST_DETAIL)
     public ResponseEntity<?> deletePost(
-            @PathVariable(value = "postId") Integer postId,
+            @PathVariable(value = "postId") UUID postId,
             @RequestHeader("id") String userId
     ) {
         postService.deletePost(postId, userId);
