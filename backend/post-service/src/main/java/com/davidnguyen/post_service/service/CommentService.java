@@ -1,6 +1,7 @@
 package com.davidnguyen.post_service.service;
 
 import com.davidnguyen.post_service.dto.CommentDto;
+import com.davidnguyen.post_service.dto.OffensiveCommentNotification;
 import com.davidnguyen.post_service.dto.UserDto;
 import com.davidnguyen.post_service.entity.Comment;
 import com.davidnguyen.post_service.entity.Post;
@@ -21,6 +22,11 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final CommentRepository commentRepository;
     private final UserApiClient userApiClient;
+    private final KafkaNotificationService kafkaNotificationService;
+
+    private static final List<String> OFFENSIVE_WORDS = Arrays.asList(
+        "bad", "offensive", "inappropriate" // Add more offensive words as needed
+    );
 
     public void createComment(UUID postId, List<CommentDto> requests, UUID authorId) {
         Post post = postRepository.findById(postId)
@@ -33,14 +39,38 @@ public class CommentService {
             Comment comment = commentMapper.toComment(req);
             comments.add(comment);
             comment.setPost(post);
+
+            if (containsOffensiveContent(req.getContent())) {
+                OffensiveCommentNotification notification = new OffensiveCommentNotification(
+                    postId,
+                    comment.getId(),
+                    authorId,
+                    req.getContent(),
+                    "Contains offensive language"
+                );
+                kafkaNotificationService.sendOffensiveCommentNotification(notification);
+            }
         });
 
         postRepository.save(post);
         commentRepository.saveAll(comments);
     }
 
-    public void updateComment(Integer commentId, CommentDto request, String userId) {
+    public void updateComment(UUID commentId, CommentDto request, String userId) {
         Comment comment = approveIdentityAndReturnComment(commentId, userId);
+        
+        // Check for offensive content in updated comment
+        if (containsOffensiveContent(request.getContent())) {
+            OffensiveCommentNotification notification = new OffensiveCommentNotification(
+                comment.getPost().getId(),
+                commentId,
+                comment.getAuthorId(),
+                request.getContent(),
+                "Contains offensive language"
+            );
+            kafkaNotificationService.sendOffensiveCommentNotification(notification);
+        }
+        
         comment.setContent(request.getContent());
         commentRepository.save(comment);
     }
@@ -73,7 +103,7 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
-    private Comment approveIdentityAndReturnComment(Integer commentId, String userId) {
+    private Comment approveIdentityAndReturnComment(UUID commentId, String userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found with this id " + commentId));
 
@@ -86,4 +116,13 @@ public class CommentService {
         return comment;
     }
 
+    private boolean containsOffensiveContent(String content) {
+        if (content == null || content.isEmpty()) {
+            return false;
+        }
+        
+        String lowerContent = content.toLowerCase();
+        return OFFENSIVE_WORDS.stream()
+                .anyMatch(word -> lowerContent.contains(word.toLowerCase()));
+    }
 }

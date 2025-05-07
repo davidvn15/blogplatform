@@ -11,6 +11,7 @@
         <option value="$PROJECT_DIR$/backend/security-service/pom.xml" />
         <option value="$PROJECT_DIR$/backend/email-service/pom.xml" />
         <option value="$PROJECT_DIR$/backend/config-server/pom.xml" />
+        <option value="$PROJECT_DIR$/backend/notification-service/pom.xml" />
       </list>
     </option>
   </component>
