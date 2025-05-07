@@ -27,7 +27,7 @@ public class CommentController {
 
     @PutMapping(ApiEndpoints.COMMENT_DETAIL)
     public ResponseEntity<?> updateComment(
-            @PathVariable(value = "commentId") Integer commentId,
+            @PathVariable(value = "commentId") UUID commentId,
             @RequestBody CommentDto commentDto,
             @RequestHeader("id") String userId
     ){
@@ -37,7 +37,7 @@ public class CommentController {
 
     @DeleteMapping(ApiEndpoints.COMMENT_DETAIL)
     public ResponseEntity<?> deleteComment(
-            @PathVariable(value = "commentId") Integer commentId,
+            @PathVariable(value = "commentId") UUID commentId,
             @RequestHeader("id") String userId
     ){
         commentService.deleteComment(commentId,userId);

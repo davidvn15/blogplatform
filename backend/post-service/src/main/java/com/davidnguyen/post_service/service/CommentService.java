@@ -75,7 +75,7 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
-    public void deleteComment(Integer commentId, String userId) {
+    public void deleteComment(UUID commentId, String userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found with this id " + commentId));
 
@@ -87,7 +87,7 @@ public class CommentService {
         commentRepository.deleteById(commentId);
     }
 
-    public void likeComment(Integer commentId, String userId) {
+    public void likeComment(UUID commentId, String userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found with this id " + commentId));
 
@@ -95,7 +95,7 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
-    public void unlikeComment(Integer commentId, String userId) {
+    public void unlikeComment(UUID commentId, String userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found with this id " + commentId));
 

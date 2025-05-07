@@ -109,7 +109,7 @@ public class CommentServiceTest {
     @Test
     void test_updateComment() {
         // given
-        Integer commentId = 1;
+        UUID commentId = UUID.randomUUID();
         String userId = "i1";
         String newContent = "updated content";
 
@@ -147,7 +147,7 @@ public class CommentServiceTest {
     @Test
     void test_updateComment_noAccess() {
         // given
-        Integer commentId = 1;
+        UUID commentId = UUID.randomUUID();
         String userId = "i1";
         String anotherUserId = "i2";
         String newContent = "updated content";
@@ -187,7 +187,7 @@ public class CommentServiceTest {
     @Test
     void test_updateComment_notFound() {
         // given
-        Integer commentId = 1;
+        UUID commentId = UUID.randomUUID();
         String userId = "i1";
         String newContent = "updated content";
 
@@ -212,7 +212,7 @@ public class CommentServiceTest {
     @Test
     void test_deleteComment() {
         // given
-        Integer commentId = 1;
+        UUID commentId = UUID.randomUUID();
         String userId = "i1";
 
         Comment comment = Comment.builder()
@@ -243,26 +243,26 @@ public class CommentServiceTest {
     @Test
     void test_deleteComment_noAccess() {
         // given
-        Integer commentId = 1;
+        UUID commentId = UUID.randomUUID();
         String userId = "i1";
         String anotherUserId = "i2";
 
         Comment comment = Comment.builder()
                 .authorId(UUID.fromString(anotherUserId))
-                .content("original content")
+                .content("comment content")
                 .status("ACTIVE")
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
 
-        UserDto userDto = UserDto.builder()
+        UserDto apiUser = UserDto.builder()
                 .id(userId)
                 .roles(List.of("ROLE_USER"))
                 .build();
 
         // when
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
-        when(userApiClient.findUserById(userId)).thenReturn(userDto);
+        when(userApiClient.findUserById(userId)).thenReturn(apiUser);
 
         // then
         assertThrows(ResourceNoAccessException.class, () -> {
@@ -277,7 +277,7 @@ public class CommentServiceTest {
     @Test
     void test_deleteComment_notFound() {
         // given
-        Integer commentId = 1;
+        UUID commentId = UUID.randomUUID();
         String userId = "i1";
 
         // when
@@ -296,12 +296,11 @@ public class CommentServiceTest {
     @Test
     void test_likeComment() {
         // given
-        Integer commentId = 1;
-        String userId = "user1";
+        UUID commentId = UUID.randomUUID();
+        String userId = "i1";
 
         Comment comment = Comment.builder()
-                .id(UUID.randomUUID())
-                .content("Test comment")
+                .content("comment content")
                 .status("ACTIVE")
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -310,12 +309,10 @@ public class CommentServiceTest {
 
         // when
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
-        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
 
         // then
         commentService.likeComment(commentId, userId);
 
-        // verify
         verify(commentRepository).findById(commentId);
         verify(commentRepository).save(comment);
         assertTrue(comment.getLikes().contains(userId));
@@ -324,12 +321,11 @@ public class CommentServiceTest {
     @Test
     void test_unlikeComment() {
         // given
-        Integer commentId = 1;
-        String userId = "user1";
+        UUID commentId = UUID.randomUUID();
+        String userId = "i1";
 
         Comment comment = Comment.builder()
-                .id(UUID.randomUUID())
-                .content("Test comment")
+                .content("comment content")
                 .status("ACTIVE")
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -338,12 +334,10 @@ public class CommentServiceTest {
 
         // when
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
-        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
 
         // then
         commentService.unlikeComment(commentId, userId);
 
-        // verify
         verify(commentRepository).findById(commentId);
         verify(commentRepository).save(comment);
         assertFalse(comment.getLikes().contains(userId));
@@ -352,8 +346,8 @@ public class CommentServiceTest {
     @Test
     void test_likeComment_notFound() {
         // given
-        Integer commentId = 1;
-        String userId = "user1";
+        UUID commentId = UUID.randomUUID();
+        String userId = "i1";
 
         // when
         when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
@@ -370,8 +364,8 @@ public class CommentServiceTest {
     @Test
     void test_unlikeComment_notFound() {
         // given
-        Integer commentId = 1;
-        String userId = "user1";
+        UUID commentId = UUID.randomUUID();
+        String userId = "i1";
 
         // when
         when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
