@@ -64,6 +64,21 @@ services:
     networks:
       - blog-network
 
+  notification-service:
+    image: notification-service:latest
+    build:
+      context: ../../infra/images/notification-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      - post-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+    networks:
+      - blog-network
+
   email-service:
     image: email-service:latest
     build:
@@ -89,6 +104,7 @@ services:
       - security-service
       - user-service
       - post-service
+      - notification-service
       - email-service
     environment:
       - SPRING_PROFILES_ACTIVE=default
